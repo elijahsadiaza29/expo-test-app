@@ -1,0 +1,20 @@
+import { SignInForm } from '@/modules/auth/components/sign-in-form';
+import * as React from 'react';
+import { KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
+export function SignInScreen() {
+  return (
+    <SafeAreaView className="flex-1 bg-background">
+      <KeyboardAvoidingView
+        className="flex-1"
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+        <ScrollView
+          contentContainerClassName="flex-grow justify-center px-4 py-8 sm:px-8"
+          keyboardShouldPersistTaps="handled">
+          <SignInForm />
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
+  );
+}
