@@ -97,6 +97,13 @@ export function DashboardScreen() {
         <Button
           variant="outline"
           className="w-full max-w-xs"
+          onPress={() => router.push('/charts')}>
+          <Text>View Charts</Text>
+        </Button>
+
+        <Button
+          variant="outline"
+          className="w-full max-w-xs"
           onPress={() => router.replace('/(auth)/sign-in')}>
           <Text>Sign Out</Text>
         </Button>
