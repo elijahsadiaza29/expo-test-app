@@ -6,7 +6,7 @@ import {
   type ChartConfig,
   useChartTheme,
   ChartLegend,
-  ChartTooltip,
+  useChartPointerConfig,
 } from '@/components/ui/chart';
 import { useColorScheme } from 'nativewind';
 
@@ -33,6 +33,11 @@ export function BarChartDemo() {
   const { colorScheme } = useColorScheme();
   const theme = useChartTheme();
   const color = colorScheme === 'dark' ? 'hsl(220 70% 50%)' : 'hsl(12 76% 61%)';
+  const pointerConfig = useChartPointerConfig({
+    hidePointer1: true,
+    activatePointersInstantlyOnTouch: true,
+    pointerLabelHeight: 190,
+  });
 
   return (
     <View className="mt-4 rounded-xl border border-border bg-card p-4 shadow-sm">
@@ -54,25 +59,7 @@ export function BarChartDemo() {
           rulesColor={theme.border}
           rulesType="solid"
           width={300}
-          pointerConfig={{
-            hidePointer1: true,
-            showPointerStrip: false,
-            pointerStripWidth: 2,
-            pointerColor: theme.border,
-            radius: 4,
-            pointerLabelWidth: 100,
-            pointerLabelHeight: 190,
-            activatePointersOnLongPress: false,
-            activatePointersInstantlyOnTouch: true,
-            activatePointersDelay: 0,
-            autoAdjustPointerLabelPosition: true,
-            persistPointer: false,
-            resetPointerIndexOnRelease: false,
-            pointerVanishDelay: 2000,
-            pointerLabelComponent: (items: any) => {
-              return <ChartTooltip active={true} payload={items} />;
-            },
-          }}
+          pointerConfig={pointerConfig}
         />
         <ChartLegend />
       </ChartContainer>

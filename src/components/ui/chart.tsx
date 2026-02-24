@@ -245,6 +245,39 @@ export function getChartColor(key: string, config: ChartConfig): string {
   return config[key]?.color || '#000';
 }
 
+/**
+ * Returns a ready-to-use `pointerConfig` with safe tooltip defaults.
+ * Spread overrides on top to customize individual charts.
+ *
+ * Usage:
+ * ```tsx
+ * const pointerConfig = useChartPointerConfig();
+ * <LineChart pointerConfig={pointerConfig} />
+ * ```
+ */
+export function useChartPointerConfig(overrides?: Record<string, any>) {
+  const theme = useChartTheme();
+
+  return {
+    showPointerStrip: false,
+    pointerStripWidth: 2,
+    pointerColor: theme.mutedForeground,
+    radius: 4,
+    pointerLabelWidth: 160,
+    pointerLabelHeight: 90,
+    activatePointersOnLongPress: false,
+    autoAdjustPointerLabelPosition: true,
+    shiftPointerLabelX: -30,
+    persistPointer: false,
+    resetPointerIndexOnRelease: false,
+    pointerVanishDelay: 2000,
+    pointerLabelComponent: (items: any) => {
+      return <ChartTooltip active={true} payload={items} />;
+    },
+    ...overrides,
+  };
+}
+
 export function useChartTheme() {
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === 'dark';

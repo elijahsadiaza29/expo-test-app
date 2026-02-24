@@ -6,7 +6,7 @@ import {
   type ChartConfig,
   useChartTheme,
   ChartLegend,
-  ChartTooltip,
+  useChartPointerConfig,
 } from '@/components/ui/chart';
 import { useColorScheme } from 'nativewind';
 
@@ -40,6 +40,7 @@ export function AreaChartDemo() {
   const { colorScheme } = useColorScheme();
   const theme = useChartTheme();
   const color = colorScheme === 'dark' ? 'hsl(220 70% 50%)' : 'hsl(12 76% 61%)';
+  const pointerConfig = useChartPointerConfig();
 
   return (
     <View className="rounded-xl border border-border bg-card p-4 shadow-sm">
@@ -67,22 +68,7 @@ export function AreaChartDemo() {
           xAxisLabelTextStyle={{ color: theme.mutedForeground, fontSize: 10 }}
           rulesType="solid"
           rulesColor={theme.border}
-          pointerConfig={{
-            showPointerStrip: false,
-            pointerStripWidth: 2,
-            pointerColor: theme.mutedForeground,
-            radius: 4,
-            pointerLabelWidth: 100,
-            pointerLabelHeight: 90,
-            activatePointersOnLongPress: false,
-            autoAdjustPointerLabelPosition: true,
-            persistPointer: false,
-            resetPointerIndexOnRelease: false,
-            pointerVanishDelay: 2000,
-            pointerLabelComponent: (items: any) => {
-              return <ChartTooltip active={true} payload={items} />;
-            },
-          }}
+          pointerConfig={pointerConfig}
         />
         <ChartLegend />
       </ChartContainer>

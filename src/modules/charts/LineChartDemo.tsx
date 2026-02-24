@@ -1,7 +1,12 @@
 import React from 'react';
 import { View, Text } from 'react-native';
 import { LineChart } from 'react-native-gifted-charts';
-import { ChartContainer, type ChartConfig, useChartTheme } from '@/components/ui/chart';
+import {
+  ChartContainer,
+  type ChartConfig,
+  useChartTheme,
+  useChartPointerConfig,
+} from '@/components/ui/chart';
 import { useColorScheme } from 'nativewind';
 
 const chartData = [
@@ -42,7 +47,7 @@ export function LineChartDemo() {
   const { colorScheme } = useColorScheme();
   const theme = useChartTheme();
   const color1 = colorScheme === 'dark' ? 'hsl(220 70% 50%)' : 'hsl(12 76% 61%)';
-  // Note: color2 can be used for a second line if needed
+  const pointerConfig = useChartPointerConfig();
 
   return (
     <View className="mt-4 rounded-xl border border-border bg-card p-4 shadow-sm">
@@ -66,6 +71,7 @@ export function LineChartDemo() {
           xAxisLabelTextStyle={{ color: theme.mutedForeground, fontSize: 10 }}
           rulesType="solid"
           rulesColor={theme.border}
+          pointerConfig={pointerConfig}
         />
       </ChartContainer>
       <View className="mt-4 border-t border-border pt-4">
