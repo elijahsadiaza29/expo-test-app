@@ -77,8 +77,8 @@ const chartConfig = {
     label: 'Tablet',
     color: 'hsl(var(--chart-3))',
     theme: {
-      light: 'hsla(73, 100%, 51%, 1.00)',
-      dark: 'hsla(54, 100%, 50%, 1.00)',
+      light: 'hsla(54, 100%, 50%, 1.00)',
+      dark: 'hsla(73, 100%, 51%, 1.00)',
     },
   },
 } satisfies ChartConfig;

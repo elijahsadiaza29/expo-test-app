@@ -86,6 +86,7 @@ export function ChartContainer({
 
       const childProps = child.props as Record<string, any>;
       let data: any[] | undefined = childProps.data;
+      let numSeries = 1;
 
       // Logic Refactor: Extract data from ALL marker children (Shadcn style)
       if (childProps.children) {
@@ -95,6 +96,7 @@ export function ChartContainer({
         );
 
         if (markerSeries.length > 0) {
+          numSeries = markerSeries.length;
           // Use the longest data set to determine widths/spacing
           const longestSeries = markerSeries.reduce((prev, curr) =>
             (curr.props.data?.length ?? 0) > (prev.props.data?.length ?? 0) ? curr : prev
@@ -109,8 +111,7 @@ export function ChartContainer({
 
       const yAxisLabelWidth = childProps.yAxisLabelWidth ?? 40;
       const chartWidth = Math.max(containerWidth - yAxisLabelWidth, 0);
-      const origBarWidth = childProps.barWidth ?? 0;
-      const isBarChart = origBarWidth > 0;
+      const isBarChart = child.type === BarChart || (childProps.barWidth ?? 0) > 0;
 
       const overrides: Record<string, any> = {
         width: chartWidth,
@@ -120,8 +121,9 @@ export function ChartContainer({
       };
 
       if (isBarChart) {
-        const slotWidth = chartWidth / data.length;
-        const gap = Math.min(6, Math.max(Math.floor(slotWidth * 0.2), 1));
+        const totalBars = data.length * numSeries;
+        const slotWidth = chartWidth / totalBars;
+        const gap = Math.min(4, Math.max(Math.floor(slotWidth * 0.1), 1));
         const barWidth = Math.max(Math.floor(slotWidth - gap), 1);
 
         overrides.barWidth = barWidth;
@@ -164,7 +166,7 @@ export function ChartContainer({
         id={id}
         onLayout={handleLayout}
         style={[
-          { width: '100%', overflow: 'visible', alignItems: isCentered ? 'center' : 'stretch' },
+          { width: '100%', overflow: 'hidden', alignItems: isCentered ? 'center' : 'stretch' },
           style,
         ]}>
         {responsiveChildren}
@@ -277,13 +279,7 @@ export function Area(_props: MarkerProps) {
   return null;
 }
 
-export function Bar(_props: {
-  data?: any[];
-  dataKey: string;
-  color?: string;
-  fill?: string;
-  radius?: number;
-}) {
+export function Bar(_props: { data: any[]; dataKey: string; color?: string }) {
   return null;
 }
 
@@ -331,71 +327,37 @@ export function AreaChart({
   return <GiftedLineChart areaChart curved={curved} dataSet={dataSet} {...props} />;
 }
 
-export function BarChart({
-  children,
-  data: rawData,
-  indexKey = 'month',
-  ...props
-}: {
-  children: React.ReactNode;
-  data?: any[];
-  indexKey?: string;
-} & any) {
+export function BarChart({ children, ...props }: { children: React.ReactNode } & any) {
   const { config } = useChart();
   const series = React.Children.toArray(children).filter(
-    (child): child is React.ReactElement<any> => React.isValidElement(child) && child.type === Bar
+    (child): child is React.ReactElement<MarkerProps> =>
+      React.isValidElement(child) && child.type === Bar
   );
 
-  let chartData = [];
+  if (series.length === 0) return null;
 
-  if (rawData && series.length > 0) {
-    // Transform flat data with multiple keys into interleaved grouped format
-    chartData = rawData.flatMap((item: any) => {
-      const groupData = series.map((bar, index) => {
-        const { dataKey, radius } = bar.props;
-        const color = config[dataKey]?.color || bar.props.fill || bar.props.color || '#000';
-        return {
-          value: item[dataKey],
+  // Interleave data for grouped bars
+  const data: any[] = [];
+  const numItems = series[0].props.data.length;
+
+  for (let i = 0; i < numItems; i++) {
+    series.forEach((s, seriesIndex) => {
+      const { dataKey, data: seriesData } = s.props;
+      const color = config[dataKey]?.color || '#000';
+      const item = seriesData[i];
+      if (item) {
+        data.push({
+          ...item,
+          // Optimization: Only show the label for the first bar in each group
+          // so it appears centered under the group rather than repeated.
+          label: seriesIndex === 0 ? item.label : undefined,
           frontColor: color,
-          // Only show label for the first bar in the group
-          label: index === 0 ? item[indexKey] : undefined,
-          // Spacing logic: small gap between grouped bars, larger gap between groups
-          spacing: index === series.length - 1 ? 20 : 2,
-          topRadius: radius,
-          // Include full item and key for tooltips
-          dataKey,
-          fullItem: item,
-        };
-      });
-      return groupData;
+        });
+      }
     });
-  } else if (series.length > 0) {
-    // Fallback to previous logic if data is on the markers
-    chartData = series[0].props.data;
   }
 
-  return (
-    <GiftedBarChart
-      data={chartData}
-      showTooltip
-      renderTooltipComponent={(item: any) => {
-        // Find all bars in the same group (same label/index)
-        const groupLabel = item.fullItem[indexKey];
-        const payload = series.map((s: any) => ({
-          dataKey: s.props.dataKey,
-          value: item.fullItem[s.props.dataKey],
-          color: config[s.props.dataKey]?.color,
-        }));
-
-        return (
-          <View style={{ marginBottom: 10 }}>
-            <ChartTooltip active={true} payload={payload} label={groupLabel} />
-          </View>
-        );
-      }}
-      {...props}
-    />
-  );
+  return <GiftedBarChart data={data} {...props} />;
 }
 
 export function LineChart({

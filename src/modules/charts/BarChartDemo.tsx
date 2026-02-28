@@ -1,21 +1,32 @@
 import React from 'react';
 import { View, Text } from 'react-native';
-import { BarChart } from 'react-native-gifted-charts';
 import {
   ChartContainer,
   type ChartConfig,
   useChartTheme,
   ChartLegend,
   useChartPointerConfig,
+  BarChart,
+  Bar,
 } from '@/components/ui/chart';
 import { useColorScheme } from 'nativewind';
 
-const chartData = [
+const desktopData = [
   { value: 450, label: 'Jan' },
   { value: 390, label: 'Feb' },
   { value: 300, label: 'Mar' },
   { value: 240, label: 'Apr' },
   { value: 320, label: 'May' },
+  { value: 524, label: 'Jun' },
+];
+
+const mobileData = [
+  { value: 240, label: 'Jan' },
+  { value: 210, label: 'Feb' },
+  { value: 160, label: 'Mar' },
+  { value: 190, label: 'Apr' },
+  { value: 140, label: 'May' },
+  { value: 140, label: 'May' },
 ];
 
 const chartConfig = {
@@ -27,12 +38,18 @@ const chartConfig = {
       dark: 'hsl(220 70% 50%)',
     },
   },
+  mobile: {
+    label: 'Mobile',
+    color: 'hsl(var(--chart-2))',
+    theme: {
+      light: 'hsl(173 58% 39%)',
+      dark: 'hsl(160 60% 45%)',
+    },
+  },
 } satisfies ChartConfig;
 
 export function BarChartDemo() {
-  const { colorScheme } = useColorScheme();
   const theme = useChartTheme();
-  const color = colorScheme === 'dark' ? 'hsl(220 70% 50%)' : 'hsl(12 76% 61%)';
   const pointerConfig = useChartPointerConfig({
     hidePointer1: true,
     activatePointersInstantlyOnTouch: true,
@@ -43,24 +60,23 @@ export function BarChartDemo() {
     <View className="mt-4 rounded-xl border border-border bg-card p-4 shadow-sm">
       <View className="mb-6">
         <Text className="text-lg font-bold text-foreground">Bar Chart - Multiple</Text>
-        <Text className="text-sm text-muted-foreground">January - June 2024</Text>
+        <Text className="text-sm text-muted-foreground">January - May 2024</Text>
       </View>
       <ChartContainer config={chartConfig}>
         <BarChart
-          data={chartData}
-          barWidth={22}
+          barWidth={18}
           noOfSections={5}
           barBorderRadius={4}
-          frontColor={color}
           yAxisThickness={0}
           xAxisThickness={0}
           yAxisTextStyle={{ color: theme.mutedForeground, fontSize: 10 }}
           xAxisLabelTextStyle={{ color: theme.mutedForeground, fontSize: 10 }}
           rulesColor={theme.border}
           rulesType="solid"
-          width={300}
-          pointerConfig={pointerConfig}
-        />
+          pointerConfig={pointerConfig}>
+          <Bar data={desktopData} dataKey="desktop" />
+          <Bar data={mobileData} dataKey="mobile" />
+        </BarChart>
         <ChartLegend />
       </ChartContainer>
       <View className="mt-4 border-t border-border pt-4">
@@ -70,7 +86,7 @@ export function BarChartDemo() {
           </Text>
         </View>
         <Text className="text-xs text-muted-foreground">
-          Showing total visitors for the last 6 months
+          Showing total visitors for the last 5 months
         </Text>
       </View>
     </View>
