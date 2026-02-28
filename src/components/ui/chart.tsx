@@ -85,7 +85,23 @@ export function ChartContainer({
       if (!React.isValidElement(child)) return child;
 
       const childProps = child.props as Record<string, any>;
-      const data: any[] | undefined = childProps.data;
+      let data: any[] | undefined = childProps.data;
+
+      // Logic Refactor: Extract data from ALL marker children (Shadcn style)
+      if (childProps.children) {
+        const markerSeries = React.Children.toArray(childProps.children).filter(
+          (c): c is React.ReactElement<MarkerProps> =>
+            React.isValidElement(c) && (c.type === Area || c.type === Bar || c.type === Line)
+        );
+
+        if (markerSeries.length > 0) {
+          // Use the longest data set to determine widths/spacing
+          const longestSeries = markerSeries.reduce((prev, curr) =>
+            (curr.props.data?.length ?? 0) > (prev.props.data?.length ?? 0) ? curr : prev
+          );
+          data = longestSeries.props.data;
+        }
+      }
 
       if (!data?.length || childProps.donut !== undefined || childProps.radius !== undefined) {
         return child;
@@ -148,7 +164,7 @@ export function ChartContainer({
         id={id}
         onLayout={handleLayout}
         style={[
-          { width: '100%', overflow: 'hidden', alignItems: isCentered ? 'center' : 'stretch' },
+          { width: '100%', overflow: 'visible', alignItems: isCentered ? 'center' : 'stretch' },
           style,
         ]}>
         {responsiveChildren}
@@ -246,6 +262,171 @@ export function ChartTooltip({
   );
 }
 
+// --- Marker Components ---
+
+type MarkerProps = {
+  data: any[];
+  dataKey: string;
+  color?: string;
+  thickness?: number;
+  hideDataPoints?: boolean;
+  dataPointsColor?: string;
+};
+
+export function Area(_props: MarkerProps) {
+  return null;
+}
+
+export function Bar(_props: {
+  data?: any[];
+  dataKey: string;
+  color?: string;
+  fill?: string;
+  radius?: number;
+}) {
+  return null;
+}
+
+export function Line(_props: MarkerProps) {
+  return null;
+}
+
+// --- Wrapped Chart Components ---
+
+import {
+  LineChart as GiftedLineChart,
+  BarChart as GiftedBarChart,
+} from 'react-native-gifted-charts';
+
+export function AreaChart({
+  children,
+  curved = false,
+  ...props
+}: {
+  children: React.ReactNode;
+  curved?: boolean;
+} & any) {
+  const { config } = useChart();
+  const series = React.Children.toArray(children).filter(
+    (child): child is React.ReactElement<MarkerProps> =>
+      React.isValidElement(child) && child.type === Area
+  );
+
+  const dataSet = series.map((s) => {
+    const { dataKey, data, thickness, hideDataPoints, dataPointsColor } = s.props;
+    const color = config[dataKey]?.color || '#000';
+    return {
+      data,
+      color,
+      thickness: thickness ?? 2,
+      hideDataPoints: hideDataPoints ?? false,
+      dataPointsColor: dataPointsColor ?? color,
+      startFillColor: color,
+      endFillColor: color,
+      startOpacity: 0.4,
+      endOpacity: 0.1,
+    };
+  });
+
+  return <GiftedLineChart areaChart curved={curved} dataSet={dataSet} {...props} />;
+}
+
+export function BarChart({
+  children,
+  data: rawData,
+  indexKey = 'month',
+  ...props
+}: {
+  children: React.ReactNode;
+  data?: any[];
+  indexKey?: string;
+} & any) {
+  const { config } = useChart();
+  const series = React.Children.toArray(children).filter(
+    (child): child is React.ReactElement<any> => React.isValidElement(child) && child.type === Bar
+  );
+
+  let chartData = [];
+
+  if (rawData && series.length > 0) {
+    // Transform flat data with multiple keys into interleaved grouped format
+    chartData = rawData.flatMap((item: any) => {
+      const groupData = series.map((bar, index) => {
+        const { dataKey, radius } = bar.props;
+        const color = config[dataKey]?.color || bar.props.fill || bar.props.color || '#000';
+        return {
+          value: item[dataKey],
+          frontColor: color,
+          // Only show label for the first bar in the group
+          label: index === 0 ? item[indexKey] : undefined,
+          // Spacing logic: small gap between grouped bars, larger gap between groups
+          spacing: index === series.length - 1 ? 20 : 2,
+          topRadius: radius,
+          // Include full item and key for tooltips
+          dataKey,
+          fullItem: item,
+        };
+      });
+      return groupData;
+    });
+  } else if (series.length > 0) {
+    // Fallback to previous logic if data is on the markers
+    chartData = series[0].props.data;
+  }
+
+  return (
+    <GiftedBarChart
+      data={chartData}
+      showTooltip
+      renderTooltipComponent={(item: any) => {
+        // Find all bars in the same group (same label/index)
+        const groupLabel = item.fullItem[indexKey];
+        const payload = series.map((s: any) => ({
+          dataKey: s.props.dataKey,
+          value: item.fullItem[s.props.dataKey],
+          color: config[s.props.dataKey]?.color,
+        }));
+
+        return (
+          <View style={{ marginBottom: 10 }}>
+            <ChartTooltip active={true} payload={payload} label={groupLabel} />
+          </View>
+        );
+      }}
+      {...props}
+    />
+  );
+}
+
+export function LineChart({
+  children,
+  curved = false,
+  ...props
+}: {
+  children: React.ReactNode;
+  curved?: boolean;
+} & any) {
+  const { config } = useChart();
+  const series = React.Children.toArray(children).filter(
+    (child): child is React.ReactElement<MarkerProps> =>
+      React.isValidElement(child) && child.type === Line
+  );
+
+  const dataSet = series.map((s) => {
+    const { dataKey, data, thickness, hideDataPoints, dataPointsColor } = s.props;
+    const color = config[dataKey]?.color || '#000';
+    return {
+      data,
+      color,
+      thickness: thickness ?? 2,
+      hideDataPoints: hideDataPoints ?? false,
+      dataPointsColor: dataPointsColor ?? color,
+    };
+  });
+
+  return <GiftedLineChart curved={curved} dataSet={dataSet} {...props} />;
+}
+
 // --- Utilities ---
 
 export function getChartColor(key: string, config: ChartConfig): string {
@@ -255,12 +436,6 @@ export function getChartColor(key: string, config: ChartConfig): string {
 /**
  * Returns a ready-to-use `pointerConfig` with safe tooltip defaults.
  * Spread overrides on top to customize individual charts.
- *
- * Usage:
- * ```tsx
- * const pointerConfig = useChartPointerConfig();
- * <LineChart pointerConfig={pointerConfig} />
- * ```
  */
 export function useChartPointerConfig(overrides?: Record<string, any>) {
   const theme = useChartTheme();

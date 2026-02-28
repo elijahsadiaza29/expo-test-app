@@ -1,15 +1,15 @@
 import React from 'react';
 import { View, Text } from 'react-native';
-import { LineChart } from 'react-native-gifted-charts';
 import {
   ChartContainer,
   type ChartConfig,
   useChartTheme,
   useChartPointerConfig,
+  LineChart,
+  Line,
 } from '@/components/ui/chart';
-import { useColorScheme } from 'nativewind';
 
-const chartData = [
+const desktopData = [
   { value: 400, label: 'Jan' },
   { value: 300, label: 'Feb' },
   { value: 200, label: 'Mar' },
@@ -22,6 +22,21 @@ const chartData = [
   { value: 300, label: 'Oct' },
   { value: 39, label: 'Nov' },
   { value: 349, label: 'Dec' },
+];
+
+const mobileData = [
+  { value: 240, label: 'Jan' },
+  { value: 210, label: 'Feb' },
+  { value: 160, label: 'Mar' },
+  { value: 190, label: 'Apr' },
+  { value: 140, label: 'May' },
+  { value: 180, label: 'Jun' },
+  { value: 280, label: 'Jul' },
+  { value: 110, label: 'Aug' },
+  { value: 250, label: 'Sep' },
+  { value: 220, label: 'Oct' },
+  { value: 30, label: 'Nov' },
+  { value: 210, label: 'Dec' },
 ];
 
 const chartConfig = {
@@ -44,26 +59,17 @@ const chartConfig = {
 } satisfies ChartConfig;
 
 export function LineChartDemo() {
-  const { colorScheme } = useColorScheme();
   const theme = useChartTheme();
-  const color1 = colorScheme === 'dark' ? 'hsl(220 70% 50%)' : 'hsl(12 76% 61%)';
   const pointerConfig = useChartPointerConfig();
 
   return (
     <View className="mt-4 rounded-xl border border-border bg-card p-4 shadow-sm">
       <View className="mb-6">
         <Text className="text-lg font-bold text-foreground">Line Chart - Multiple</Text>
-        <Text className="text-sm text-muted-foreground">January - June 2024</Text>
+        <Text className="text-sm text-muted-foreground">January - December 2024</Text>
       </View>
       <ChartContainer config={chartConfig}>
         <LineChart
-          data={chartData}
-          spacing={40}
-          color={color1}
-          thickness={2}
-          dataPointsHeight={6}
-          dataPointsWidth={6}
-          dataPointsColor={color1}
           noOfSections={5}
           yAxisColor="transparent"
           xAxisColor="transparent"
@@ -71,8 +77,10 @@ export function LineChartDemo() {
           xAxisLabelTextStyle={{ color: theme.mutedForeground, fontSize: 10 }}
           rulesType="solid"
           rulesColor={theme.border}
-          pointerConfig={pointerConfig}
-        />
+          pointerConfig={pointerConfig}>
+          <Line data={desktopData} dataKey="desktop" dataPointsColor={theme.primary} />
+          <Line data={mobileData} dataKey="mobile" dataPointsColor={theme.accent} />
+        </LineChart>
       </ChartContainer>
       <View className="mt-4 border-t border-border pt-4">
         <View className="flex flex-row items-center gap-2">
@@ -81,7 +89,7 @@ export function LineChartDemo() {
           </Text>
         </View>
         <Text className="text-xs text-muted-foreground">
-          Showing total visitors for the last 6 months
+          Showing total visitors for the last 12 months
         </Text>
       </View>
     </View>
