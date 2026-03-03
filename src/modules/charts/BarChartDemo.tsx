@@ -1,15 +1,13 @@
-import React from 'react';
-import { View, Text } from 'react-native';
 import {
+  Bar,
+  BarChart,
   ChartContainer,
-  type ChartConfig,
-  useChartTheme,
   ChartLegend,
   useChartPointerConfig,
-  BarChart,
-  Bar,
+  type ChartConfig,
 } from '@/components/ui/chart';
-import { useColorScheme } from 'nativewind';
+import React from 'react';
+import { Text, View } from 'react-native';
 
 const desktopData = [
   { value: 450, label: 'Jan' },
@@ -49,7 +47,6 @@ const chartConfig = {
 } satisfies ChartConfig;
 
 export function BarChartDemo() {
-  const theme = useChartTheme();
   const pointerConfig = useChartPointerConfig({
     hidePointer1: true,
     activatePointersInstantlyOnTouch: true,
@@ -63,17 +60,7 @@ export function BarChartDemo() {
         <Text className="text-sm text-muted-foreground">January - May 2024</Text>
       </View>
       <ChartContainer config={chartConfig}>
-        <BarChart
-          barWidth={18}
-          noOfSections={5}
-          barBorderRadius={4}
-          yAxisThickness={0}
-          xAxisThickness={0}
-          yAxisTextStyle={{ color: theme.mutedForeground, fontSize: 10 }}
-          xAxisLabelTextStyle={{ color: theme.mutedForeground, fontSize: 10 }}
-          rulesColor={theme.border}
-          rulesType="solid"
-          pointerConfig={pointerConfig}>
+        <BarChart noOfSections={5} pointerConfig={pointerConfig}>
           <Bar data={desktopData} dataKey="desktop" />
           <Bar data={mobileData} dataKey="mobile" />
         </BarChart>

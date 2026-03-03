@@ -22,6 +22,7 @@ const desktopData = [
   { value: 300, label: 'Oct' },
   { value: 39, label: 'Nov' },
   { value: 349, label: 'Dec' },
+  { value: 349, label: 'Dec' },
 ];
 
 const mobileData = [
@@ -36,6 +37,7 @@ const mobileData = [
   { value: 250, label: 'Sep' },
   { value: 220, label: 'Oct' },
   { value: 30, label: 'Nov' },
+  { value: 210, label: 'Dec' },
   { value: 210, label: 'Dec' },
 ];
 
@@ -69,17 +71,9 @@ export function LineChartDemo() {
         <Text className="text-sm text-muted-foreground">January - December 2024</Text>
       </View>
       <ChartContainer config={chartConfig}>
-        <LineChart
-          noOfSections={5}
-          yAxisColor="transparent"
-          xAxisColor="transparent"
-          yAxisTextStyle={{ color: theme.mutedForeground, fontSize: 10 }}
-          xAxisLabelTextStyle={{ color: theme.mutedForeground, fontSize: 10 }}
-          rulesType="solid"
-          rulesColor={theme.border}
-          pointerConfig={pointerConfig}>
-          <Line data={desktopData} dataKey="desktop" dataPointsColor={theme.primary} />
-          <Line data={mobileData} dataKey="mobile" dataPointsColor={theme.accent} />
+        <LineChart noOfSections={5} pointerConfig={pointerConfig}>
+          <Line data={desktopData} dataKey="desktop" />
+          <Line data={mobileData} dataKey="mobile" />
         </LineChart>
       </ChartContainer>
       <View className="mt-4 border-t border-border pt-4">

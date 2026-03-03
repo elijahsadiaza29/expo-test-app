@@ -1,15 +1,14 @@
-import React from 'react';
-import { View, Text } from 'react-native';
 import {
+  Area,
+  AreaChart,
   ChartContainer,
-  type ChartConfig,
-  useChartTheme,
   ChartLegend,
   useChartPointerConfig,
-  AreaChart,
-  Area,
+  useChartTheme,
+  type ChartConfig,
 } from '@/components/ui/chart';
-import { useColorScheme } from 'nativewind';
+import React from 'react';
+import { Text, View } from 'react-native';
 
 const desktopData = [
   { value: 400, label: 'Jan' },
@@ -37,8 +36,8 @@ const mobileData = [
   { value: 110, label: 'Aug' },
   { value: 250, label: 'Sep' },
   { value: 220, label: 'Oct' },
-  { value: 30, label: 'Nov' },
-  { value: 210, label: 'Dec' },
+  { value: 39, label: 'Nov' },
+  { value: 349, label: 'Dec' },
 ];
 
 const tabletData = [
@@ -96,16 +95,7 @@ export function AreaChartDemo() {
         </Text>
       </View>
       <ChartContainer config={chartConfig}>
-        <AreaChart
-          curved
-          noOfSections={5}
-          yAxisColor="transparent"
-          xAxisColor="transparent"
-          yAxisTextStyle={{ color: theme.mutedForeground, fontSize: 10 }}
-          xAxisLabelTextStyle={{ color: theme.mutedForeground, fontSize: 10 }}
-          rulesType="solid"
-          rulesColor={theme.border}
-          pointerConfig={pointerConfig}>
+        <AreaChart curved noOfSections={5} pointerConfig={pointerConfig}>
           <Area data={desktopData} dataKey="desktop" hideDataPoints />
           <Area data={mobileData} dataKey="mobile" hideDataPoints />
           <Area data={tabletData} dataKey="tablet" hideDataPoints />

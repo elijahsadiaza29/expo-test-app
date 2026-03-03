@@ -1,34 +1,29 @@
 import React from 'react';
 import { View, Text } from 'react-native';
-import { PieChart } from 'react-native-gifted-charts';
 import {
   ChartContainer,
   type ChartConfig,
   useChartTheme,
   ChartLegend,
+  PieChart,
+  Pie,
 } from '@/components/ui/chart';
-import { useColorScheme } from 'nativewind';
 
 const chartConfig = {
   desktop: {
     label: 'Desktop',
+    color: 'hsl(var(--chart-1))',
     theme: { light: 'hsl(12 76% 61%)', dark: 'hsl(220 70% 50%)' },
   },
   mobile: {
     label: 'Mobile',
+    color: 'hsl(var(--chart-2))',
     theme: { light: 'hsl(173 58% 39%)', dark: 'hsl(160 60% 45%)' },
   },
 } satisfies ChartConfig;
 
 export function RadialChartDemo() {
-  const { colorScheme } = useColorScheme();
   const theme = useChartTheme();
-  const isDark = colorScheme === 'dark';
-
-  const chartData = [
-    { value: 1260, color: isDark ? 'hsl(220 70% 50%)' : 'hsl(12 76% 61%)', text: 'Chrome' },
-    { value: 260, color: isDark ? 'hsl(160 60% 45%)' : 'hsl(173 58% 39%)', text: 'Safari' },
-  ];
 
   return (
     <View className="mt-4 rounded-xl border border-border bg-card p-4 shadow-sm">
@@ -40,10 +35,8 @@ export function RadialChartDemo() {
         <ChartContainer config={chartConfig}>
           <PieChart
             donut
-            innerCircleColor={theme.background}
             radius={100}
             innerRadius={80}
-            data={chartData}
             centerLabelComponent={() => {
               return (
                 <View className="items-center justify-center">
@@ -51,8 +44,10 @@ export function RadialChartDemo() {
                   <Text className="text-xs text-muted-foreground">Visitors</Text>
                 </View>
               );
-            }}
-          />
+            }}>
+            <Pie value={1260} dataKey="desktop" />
+            <Pie value={260} dataKey="mobile" />
+          </PieChart>
           <ChartLegend />
         </ChartContainer>
       </View>

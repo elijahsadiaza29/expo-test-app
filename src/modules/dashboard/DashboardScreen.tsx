@@ -1,10 +1,4 @@
-import { Text } from '@/components/ui/text';
 import { Button } from '@/components/ui/button';
-import { useRouter } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { View } from 'react-native';
-import * as React from 'react';
-import { toast } from '@/components/ui/sonner';
 import {
   Drawer,
   DrawerClose,
@@ -15,6 +9,12 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from '@/components/ui/drawer';
+import { toast } from '@/components/ui/sonner';
+import { Text } from '@/components/ui/text';
+import { useRouter } from 'expo-router';
+import * as React from 'react';
+import { View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export function DashboardScreen() {
   const router = useRouter();
@@ -25,7 +25,7 @@ export function DashboardScreen() {
         <View className="items-center gap-2">
           <Text className="text-3xl font-bold">Dashboard</Text>
           <Text className="text-center text-base text-muted-foreground">
-            Welcome! You're now signed in.
+            Welcome! You&apos;re now signed in.
           </Text>
         </View>
 

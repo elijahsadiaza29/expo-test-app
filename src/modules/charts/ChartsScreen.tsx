@@ -8,6 +8,7 @@ import { RadialChartDemo } from './RadialChartDemo';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'expo-router';
 import { ChevronLeft } from 'lucide-react-native';
+import { HorizontalBarChartDemo } from './HorizontalBarChartDemo';
 
 export function ChartsScreen() {
   const router = useRouter();
@@ -29,6 +30,7 @@ export function ChartsScreen() {
         <LineChartDemo />
         <PieChartDemo />
         <RadialChartDemo />
+        <HorizontalBarChartDemo />
       </ScrollView>
     </View>
   );
