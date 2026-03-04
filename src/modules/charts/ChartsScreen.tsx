@@ -1,14 +1,15 @@
-import React from 'react';
-import { ScrollView, View, Text } from 'react-native';
-import { AreaChartDemo } from './AreaChartDemo';
-import { BarChartDemo } from './BarChartDemo';
-import { PieChartDemo } from './PieChartDemo';
-import { LineChartDemo } from './LineChartDemo';
-import { RadialChartDemo } from './RadialChartDemo';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'expo-router';
 import { ChevronLeft } from 'lucide-react-native';
+import React from 'react';
+import { ScrollView, Text, View } from 'react-native';
+import { AreaChartDemo } from './AreaChartDemo';
+import { BarChartDemo } from './BarChartDemo';
+import { CandlestickChartDemo } from './CandlestickChartDemo';
 import { HorizontalBarChartDemo } from './HorizontalBarChartDemo';
+import { LineChartDemo } from './LineChartDemo';
+import { PieChartDemo } from './PieChartDemo';
+import { RadialChartDemo } from './RadialChartDemo';
 
 export function ChartsScreen() {
   const router = useRouter();
@@ -25,6 +26,7 @@ export function ChartsScreen() {
         </View>
       </View>
       <ScrollView className="flex-1" contentContainerStyle={{ padding: 16, paddingBottom: 40 }}>
+        <CandlestickChartDemo />
         <AreaChartDemo />
         <BarChartDemo />
         <LineChartDemo />

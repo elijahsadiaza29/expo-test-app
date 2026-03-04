@@ -98,7 +98,7 @@ export function AreaChartDemo() {
         <AreaChart curved noOfSections={5} pointerConfig={pointerConfig}>
           <Area data={desktopData} dataKey="desktop" hideDataPoints />
           <Area data={mobileData} dataKey="mobile" hideDataPoints />
-          <Area data={tabletData} dataKey="tablet" hideDataPoints />
+          {/* <Area data={tabletData} dataKey="tablet" hideDataPoints /> */}
         </AreaChart>
         <ChartLegend />
       </ChartContainer>

@@ -20,6 +20,7 @@ export type ChartConfig = {
 type ChartContextProps = {
   config: ChartConfig;
   width: number;
+  height?: number;
 };
 
 const ChartContext = React.createContext<ChartContextProps | null>(null);
@@ -55,11 +56,11 @@ export function ChartContainer({
   style?: ViewStyle;
 }) {
   const { colorScheme } = useColorScheme();
-  const [containerWidth, setContainerWidth] = React.useState(0);
+  const [dimensions, setDimensions] = React.useState({ width: 0, height: 0 });
 
   const handleLayout = React.useCallback((event: LayoutChangeEvent) => {
-    const { width } = event.nativeEvent.layout;
-    setContainerWidth(width);
+    const { width, height } = event.nativeEvent.layout;
+    setDimensions({ width, height });
   }, []);
 
   // Resolve theme colours into the config
@@ -79,7 +80,7 @@ export function ChartContainer({
   // This mirrors how Shadcn's web ChartContainer wraps children in a
   // ResponsiveContainer – charts always compress to fit, never scroll.
   const responsiveChildren = React.useMemo(() => {
-    if (containerWidth === 0) return null;
+    if (dimensions.width === 0) return null;
 
     return React.Children.map(children, (child) => {
       if (!React.isValidElement(child)) return child;
@@ -124,14 +125,14 @@ export function ChartContainer({
       // overrides — those are computed inside BarChart based on data count.
       if (isBarChart && isHorizontal) {
         const yAxisLabelWidth = childProps.yAxisLabelWidth ?? 45;
-        const chartWidth = Math.max(containerWidth - yAxisLabelWidth, 0);
+        const chartWidth = Math.max(dimensions.width - yAxisLabelWidth, 0);
         return React.cloneElement(child as React.ReactElement<any>, {
           width: chartWidth,
         });
       }
 
       const yAxisLabelWidth = childProps.yAxisLabelWidth ?? 40;
-      const chartWidth = Math.max(containerWidth - yAxisLabelWidth, 0);
+      const chartWidth = Math.max(dimensions.width - yAxisLabelWidth, 0);
 
       const overrides: Record<string, any> = {
         width: chartWidth,
@@ -165,7 +166,7 @@ export function ChartContainer({
 
       return React.cloneElement(child as React.ReactElement<any>, overrides);
     });
-  }, [children, containerWidth]);
+  }, [children, dimensions]);
 
   // Determine if we should center align the chart (Pie/Radial charts)
   const isCentered = React.useMemo(() => {
@@ -182,7 +183,8 @@ export function ChartContainer({
   }, [children]);
 
   return (
-    <ChartContext.Provider value={{ config: chartConfig, width: containerWidth }}>
+    <ChartContext.Provider
+      value={{ config: chartConfig, width: dimensions.width, height: dimensions.height }}>
       <View
         id={id}
         onLayout={handleLayout}
@@ -244,7 +246,7 @@ export function ChartTooltip({
   const tooltipLabel = label || items[0]?.label;
 
   return (
-    <View className="min-w-[130px] rounded-xl border border-border bg-card px-3 py-2 shadow-sm">
+    <View className="min-w-[130px] rounded-xl border border-border bg-background px-3 py-2 shadow-sm">
       {!hideLabel && tooltipLabel ? (
         <Text className="mb-2 text-sm font-medium text-foreground">{tooltipLabel}</Text>
       ) : null}
@@ -364,6 +366,8 @@ export function AreaChart({
     rulesType: 'solid',
     yAxisTextStyle: { color: theme.mutedForeground, fontSize: 11 },
     xAxisLabelTextStyle: { color: theme.mutedForeground, fontSize: 11 },
+    xAxisColor: theme.border,
+    yAxisColor: theme.border,
   };
 
   return (
@@ -425,6 +429,8 @@ export function BarChart({
     rulesType: 'solid',
     yAxisTextStyle: { color: theme.mutedForeground, fontSize: 11 },
     xAxisLabelTextStyle: { color: theme.mutedForeground, fontSize: 11 },
+    xAxisColor: theme.border,
+    yAxisColor: theme.border,
   };
 
   if (horizontal) {
@@ -552,6 +558,8 @@ export function LineChart({
     rulesType: 'solid',
     yAxisTextStyle: { color: theme.mutedForeground, fontSize: 11 },
     xAxisLabelTextStyle: { color: theme.mutedForeground, fontSize: 11 },
+    xAxisColor: theme.border,
+    yAxisColor: theme.border,
   };
 
   return <GiftedLineChart curved={curved} dataSet={dataSet} {...defaultProps} {...props} />;
@@ -578,6 +586,182 @@ export function PieChart({ children, ...props }: { children: React.ReactNode } &
   });
 
   return <GiftedPieChart data={data} innerCircleColor={theme.background} {...props} />;
+}
+
+// --- Candlestick Chart (SVG from scratch) ---
+
+import Svg, { G, Rect, Line as SvgLine } from 'react-native-svg';
+
+export type CandleData = {
+  timestamp: number;
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+};
+
+export function Candle(
+  _props: {
+    data: CandleData[];
+    dataKey: string;
+  } & Record<string, any>
+) {
+  return null;
+}
+
+export function CandlestickChart({
+  children,
+  ...props
+}: {
+  children: React.ReactNode;
+  height?: number;
+} & Record<string, any>) {
+  const { config, width: containerWidth, height: containerHeight } = useChart();
+  const theme = useChartTheme();
+
+  const height = props.height || containerHeight || 200;
+
+  // Extract Candle markers from children
+  const candles = React.Children.toArray(children).filter(
+    (child): child is React.ReactElement => React.isValidElement(child) && child.type === Candle
+  );
+
+  if (candles.length === 0 || containerWidth === 0) return null;
+
+  // Use the first Candle series
+  const candleProps = candles[0].props as { data?: CandleData[]; dataKey?: string };
+  const data: CandleData[] = candleProps.data ?? [];
+  const dataKey = candleProps.dataKey ?? 'candle';
+
+  if (data.length === 0) return null;
+
+  // Resolve colors from config
+  const positiveColor = config[`${dataKey}Positive`]?.color ?? config.positive?.color ?? '#22c55e';
+  const negativeColor = config[`${dataKey}Negative`]?.color ?? config.negative?.color ?? '#ef4444';
+
+  // Chart layout constants
+  const yAxisWidth = 40; // reduced to take less space
+  const chartPaddingTop = 8;
+  const chartPaddingBottom = 8;
+  const chartWidth = containerWidth - yAxisWidth;
+  const chartHeight = height - chartPaddingTop - chartPaddingBottom;
+
+  // Calculate global min/max for Y scale
+  const allLows = data.map((d) => d.low);
+  const allHighs = data.map((d) => d.high);
+  const minPrice = Math.min(...allLows);
+  const maxPrice = Math.max(...allHighs);
+  const priceRange = maxPrice - minPrice || 1;
+  const padding = priceRange * 0.05;
+  const yMin = minPrice - padding;
+  const yMax = maxPrice + padding;
+  const yRange = yMax - yMin;
+
+  // Y coordinate mapping (inverted: high price = top = low y)
+  const toY = (price: number) =>
+    chartPaddingTop + chartHeight - ((price - yMin) / yRange) * chartHeight;
+
+  // X layout: evenly distribute candles
+  const candleSlotWidth = chartWidth / data.length;
+  const candleBodyWidth = Math.max(2, Math.min(candleSlotWidth * 0.6, 14));
+  const wickWidth = 1.5;
+
+  // Y-axis tick marks
+  const numTicks = 5;
+  const ticks: number[] = [];
+  for (let i = 0; i <= numTicks; i++) {
+    ticks.push(yMin + (yRange / numTicks) * i);
+  }
+
+  // Format tick numbers (support small decimals for crypto, k for large)
+  const formatTick = (tick: number) => {
+    if (tick >= 1000) return `${(tick / 1000).toFixed(1)}k`;
+    if (tick < 10) return tick.toFixed(2);
+    return tick.toFixed(0);
+  };
+
+  return (
+    <View style={{ width: '100%' }}>
+      <View style={{ flexDirection: 'row', width: '100%' }}>
+        {/* Y-axis labels */}
+        <View
+          style={{
+            width: yAxisWidth,
+            height,
+            justifyContent: 'space-between',
+            paddingTop: chartPaddingTop,
+            paddingBottom: chartPaddingBottom,
+          }}>
+          {[...ticks].reverse().map((tick, i) => (
+            <Text
+              key={i}
+              style={{
+                color: theme.mutedForeground,
+                fontSize: 10,
+                textAlign: 'left', // Aligned to the left edge of its container
+                paddingRight: 8,
+              }}>
+              {formatTick(tick)}
+            </Text>
+          ))}
+        </View>
+
+        {/* SVG chart area */}
+        <Svg width={chartWidth} height={height}>
+          {/* Gridlines */}
+          {ticks.map((tick, i) => (
+            <SvgLine
+              key={`grid-${i}`}
+              x1={0}
+              x2={chartWidth}
+              y1={toY(tick)}
+              y2={toY(tick)}
+              stroke={theme.border}
+              strokeWidth={0.5}
+              strokeDasharray="3,3"
+            />
+          ))}
+
+          {/* Candles */}
+          {data.map((d, i) => {
+            const isBullish = d.close >= d.open;
+            const color = isBullish ? positiveColor : negativeColor;
+            const cx = candleSlotWidth * i + candleSlotWidth / 2;
+
+            const bodyTop = toY(Math.max(d.open, d.close));
+            const bodyBottom = toY(Math.min(d.open, d.close));
+            const bodyHeight = Math.max(1, bodyBottom - bodyTop);
+
+            const wickTop = toY(d.high);
+            const wickBottom = toY(d.low);
+
+            return (
+              <G key={i}>
+                {/* Wick */}
+                <SvgLine
+                  x1={cx}
+                  x2={cx}
+                  y1={wickTop}
+                  y2={wickBottom}
+                  stroke={color}
+                  strokeWidth={wickWidth}
+                />
+                {/* Body */}
+                <Rect
+                  x={cx - candleBodyWidth / 2}
+                  y={bodyTop}
+                  width={candleBodyWidth}
+                  height={bodyHeight}
+                  fill={isBullish ? color : color}
+                  rx={1}
+                />
+              </G>
+            );
+          })}
+        </Svg>
+      </View>
+    </View>
+  );
 }
 
 // --- Utilities ---
