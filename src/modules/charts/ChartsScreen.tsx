@@ -10,6 +10,7 @@ import { HorizontalBarChartDemo } from './HorizontalBarChartDemo';
 import { LineChartDemo } from './LineChartDemo';
 import { PieChartDemo } from './PieChartDemo';
 import { RadialChartDemo } from './RadialChartDemo';
+import { TimePickerDemo } from './TimePickerDemo';
 
 export function ChartsScreen() {
   const router = useRouter();
@@ -26,6 +27,7 @@ export function ChartsScreen() {
         </View>
       </View>
       <ScrollView className="flex-1" contentContainerStyle={{ padding: 16, paddingBottom: 40 }}>
+        <TimePickerDemo />
         <CandlestickChartDemo />
         <AreaChartDemo />
         <BarChartDemo />
